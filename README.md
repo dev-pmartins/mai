@@ -11,7 +11,28 @@ skills/<name>/SKILL.md        # skill (+ optional references/)
 commands/<name>.md            # slash command
 hooks/<name>.json             # one fragment: {"event": ..., "matcher": ..., "hooks": [...]}
 mcp/<name>.json               # one fragment: {"<name>": {"command": ..., "args": [...]}}
+mcp/servers/<name>/           # optional: source for a locally-hosted MCP server
 ```
+
+An `mcp/<name>.json` fragment can reference an external package (`npx -y ...`)
+or a server whose source lives in this repo under `mcp/servers/<name>/` — in
+that case point `command`/`args` at it with an absolute path built from the
+`${MAI_ROOT}` placeholder (see `mcp/runrunit.json` for an example), which the
+installer resolves at merge time. `${VAR}` placeholders anywhere in a
+hook/mcp fragment are resolved the same way, straight from the process
+environment — this is for **portable paths, not secrets**: project-scope
+`.mcp.json`/`settings.json` are often committed to the *target* repo, so a
+secret resolved here would land in that repo's git history. A locally-hosted
+server that needs credentials should load its own `.env`, anchored to its own
+file location rather than `process.cwd()` (see `mcp/servers/runrunit/src/env.ts`).
+
+## Secrets
+
+Copy `.env.example` to `.env` at the repo root and fill in the real values —
+`.env` is gitignored, never committed. Each locally-hosted server under
+`mcp/servers/<name>/` is responsible for loading this root `.env` itself
+(anchored to its own file path, not `process.cwd()`); it never flows through
+an installed fragment or into any merged `settings.json`/`.mcp.json`.
 
 There is no manifest or registry. Adding content is just adding a
 correctly-named folder/file — the installer discovers everything by

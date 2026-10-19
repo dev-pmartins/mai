@@ -90,6 +90,26 @@ for file in hooks/*.json mcp/*.json; do
   check_json "$file" || fail=1
 done
 
+# Private terms (company names, internal IDs...) must never reach a versioned
+# file. The list lives in the gitignored .private/terms.txt, so this check is
+# skipped wherever that file doesn't exist (e.g. CI).
+terms_file=".private/terms.txt"
+if [ -f "$terms_file" ]; then
+  patterns="$(grep -vE '^\s*(#|$)' "$terms_file" || true)"
+  if [ -n "$patterns" ]; then
+    hits="$(git ls-files -z --cached --others --exclude-standard \
+      | xargs -0 -r grep -nIiE -f <(printf '%s\n' "$patterns") -- 2>/dev/null || true)"
+    if [ -n "$hits" ]; then
+      printf '%s\n' "$hits" | sed 's/^/private term: /'
+      fail=1
+    fi
+    if git config user.email | grep -qiE -f <(printf '%s\n' "$patterns"); then
+      printf 'private term: git user.email (%s) matches %s\n' "$(git config user.email)" "$terms_file"
+      fail=1
+    fi
+  fi
+fi
+
 if [ "$fail" -eq 0 ]; then
   printf 'lint: all good\n'
 else

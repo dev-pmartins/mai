@@ -1,0 +1,9 @@
+**/.env
+!**/.env.example
+**/node_modules/
+**/build/
+**/.cache/
+*.bak-*
+
+# Contexto privado da empresa (lido em runtime, nunca versionado)
+.private/

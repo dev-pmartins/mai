@@ -1,0 +1,7 @@
+{
+  "runrunit": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["${MAI_ROOT}/mcp/servers/runrunit/build/index.js"]
+  }
+}
